@@ -5,7 +5,7 @@
 
 void version(void)
 {
-    std::puts("txt2png by katahiromz Version 0.5");
+    std::puts("txt2png by katahiromz Version 0.6");
 }
 
 void usage(void)
