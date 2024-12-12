@@ -15,7 +15,7 @@
 ```txt
 用法: txt2png [オプション] -i your_list.bas
 
-Options:
+オプション:
     --help                このメッセージを表示します。
     --version             バージョン情報を表示します。
     -i INPUT              入力ファイル (プログラムリストかテキスト) を指定します。
