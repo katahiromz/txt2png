@@ -1,11 +1,16 @@
-#include "types.h"
-#include "encoding.h"
+// License: MIT
 #include <windows.h>
 #include <windowsx.h>
 
+// ã‚¤ãƒ¡ãƒ¼ã‚¸ãƒãƒ³ãƒ‰ãƒ«
+typedef HBITMAP VskImageHandle;
+
+#include "txt2png.h"
+#include "encoding.h"
+
 void version(void)
 {
-    std::puts("txt2png by katahiromz Version 0.6");
+    std::puts("txt2png by katahiromz Version 0.7");
 }
 
 void usage(void)
@@ -27,12 +32,9 @@ void usage(void)
     );
 }
 
-// ƒCƒ[ƒWƒnƒ“ƒhƒ‹
-typedef HBITMAP VskImageHandle;
-
 typedef COLORREF VskSystemColor;
 
-// ‚PƒoƒCƒg’†‚ÌƒrƒbƒgŒQ‚ğ‹t‡‚É‚µ‚½‚à‚Ì‚ğ•Ô‚·ŠÖ”
+// ï¼‘ãƒã‚¤ãƒˆä¸­ã®ãƒ“ãƒƒãƒˆç¾¤ã‚’é€†é †ã«ã—ãŸã‚‚ã®ã‚’è¿”ã™é–¢æ•°
 VskByte vsk_reverse_byte(VskByte x)
 {
     static const VskByte table[] =
@@ -73,7 +75,7 @@ VskByte vsk_reverse_byte(VskByte x)
     return table[x];
 }
 
-// SJIS‘SŠp•¶š‚ğJIS‘SŠp•¶š‚É•ÏŠ·
+// SJISå…¨è§’æ–‡å­—ã‚’JISå…¨è§’æ–‡å­—ã«å¤‰æ›
 VskWord vsk_sjis2jis(VskByte high, VskByte low)
 {
     high <<= 1;
@@ -99,7 +101,7 @@ VskWord vsk_sjis2jis(VskByte high, VskByte low)
     return ((VskWord(high) << 8) | low);
 }
 
-// XBM‚©‚çƒrƒbƒg‚Ì[‚³‚ª1BPP‚ÌDIBƒrƒbƒgƒ}ƒbƒv‚ğì¬
+// XBMã‹ã‚‰ãƒ“ãƒƒãƒˆã®æ·±ã•ãŒ1BPPã®DIBãƒ“ãƒƒãƒˆãƒãƒƒãƒ—ã‚’ä½œæˆ
 VskImageHandle vsk_create_1bpp_image_from_xbm(int width, int height, const void *bits)
 {
     assert(width % CHAR_BIT == 0);
@@ -112,7 +114,7 @@ VskImageHandle vsk_create_1bpp_image_from_xbm(int width, int height, const void 
     return CreateBitmap(width, height, 1, 1, bytes.data());
 }
 
-// ƒrƒbƒg‚Ì[‚³‚ª32BPP‚ÌDIBƒrƒbƒgƒ}ƒbƒv‚ğì¬
+// ãƒ“ãƒƒãƒˆã®æ·±ã•ãŒ32BPPã®DIBãƒ“ãƒƒãƒˆãƒãƒƒãƒ—ã‚’ä½œæˆ
 VskImageHandle vsk_create_32bpp_image(int width, int height, void **ppvBits)
 {
     BITMAPINFO bmi;
@@ -131,7 +133,7 @@ VskImageHandle vsk_create_32bpp_image(int width, int height, void **ppvBits)
     return hbm;
 }
 
-// ƒrƒbƒgƒ}ƒbƒv‚ğƒNƒŠƒbƒvƒ{[ƒh‚ÉƒRƒs[‚·‚é
+// ãƒ“ãƒƒãƒˆãƒãƒƒãƒ—ã‚’ã‚¯ãƒªãƒƒãƒ—ãƒœãƒ¼ãƒ‰ã«ã‚³ãƒ”ãƒ¼ã™ã‚‹
 bool vsk_copy_image_to_clipboard(HWND hwnd, HBITMAP hBitmap)
 {
     BITMAP bm;
@@ -201,10 +203,10 @@ bool vsk_copy_image_to_clipboard(HWND hwnd, HBITMAP hBitmap)
 ////////////////////////////////////////////////////////////////////////////////////
 // VskImage
 
-// VskImageƒNƒ‰ƒX‚ÌÀ‘•
+// VskImageã‚¯ãƒ©ã‚¹ã®å®Ÿè£…
 struct VskImageImpl;
 
-// ƒCƒ[ƒW‚ğˆµ‚¤ƒNƒ‰ƒX
+// ã‚¤ãƒ¡ãƒ¼ã‚¸ã‚’æ‰±ã†ã‚¯ãƒ©ã‚¹
 struct VskImage
 {
     struct VskImageImpl *m_pimpl;
@@ -234,7 +236,7 @@ struct VskImage
     bool inside(int x, int y) const;
 };
 
-// 1BPP‚ÌƒCƒ[ƒW‚ğˆµ‚¤ƒNƒ‰ƒX
+// 1BPPã®ã‚¤ãƒ¡ãƒ¼ã‚¸ã‚’æ‰±ã†ã‚¯ãƒ©ã‚¹
 struct Vsk1BppImage : VskImage
 {
     Vsk1BppImage();
@@ -242,64 +244,64 @@ struct Vsk1BppImage : VskImage
     Vsk1BppImage(int width, int height, const void *bits);
 };
 
-// VskImage‚Ì“à•”À‘•VskImageImpl
+// VskImageã®å†…éƒ¨å®Ÿè£…VskImageImpl
 struct VskImageImpl
 {
     VskImageHandle m_image = nullptr;
     BITMAP m_bm = { 0 };
 };
 
-// ƒCƒ[ƒW‚Ìƒnƒ“ƒhƒ‹
+// ã‚¤ãƒ¡ãƒ¼ã‚¸ã®ãƒãƒ³ãƒ‰ãƒ«
 VskImage::operator VskImageHandle() const
 {
     return m_pimpl->m_image;
 }
 
-// ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+// ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 VskImage::VskImage()
 {
     m_pimpl = new VskImageImpl;
 }
 
-// ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+// ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 VskImage::VskImage(VskImageHandle image)
 {
     m_pimpl = new VskImageImpl;
     attach(image);
 }
 
-// ƒfƒXƒgƒ‰ƒNƒ^
+// ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 VskImage::~VskImage()
 {
     destroy();
     delete m_pimpl;
 }
 
-// •iƒsƒNƒZƒ‹’PˆÊj
+// å¹…ï¼ˆãƒ”ã‚¯ã‚»ãƒ«å˜ä½ï¼‰
 int VskImage::width() const
 {
     return m_pimpl->m_bm.bmWidth;
 }
 
-// ‚‚³iƒsƒNƒZƒ‹’PˆÊj
+// é«˜ã•ï¼ˆãƒ”ã‚¯ã‚»ãƒ«å˜ä½ï¼‰
 int VskImage::height() const
 {
     return m_pimpl->m_bm.bmHeight;
 }
 
-// ƒrƒbƒg‚Ì[‚³
+// ãƒ“ãƒƒãƒˆã®æ·±ã•
 int VskImage::bpp() const
 {
     return m_pimpl->m_bm.bmBitsPixel;
 }
 
-// ƒCƒ[ƒW‚Ì‰¡•iƒoƒCƒg”j
+// ã‚¤ãƒ¡ãƒ¼ã‚¸ã®æ¨ªå¹…ï¼ˆãƒã‚¤ãƒˆæ•°ï¼‰
 int VskImage::pitch() const
 {
     return m_pimpl->m_bm.bmWidthBytes;
 }
 
-// ƒCƒ[ƒWƒnƒ“ƒhƒ‹‚ğæ‚è•t‚¯‚é
+// ã‚¤ãƒ¡ãƒ¼ã‚¸ãƒãƒ³ãƒ‰ãƒ«ã‚’å–ã‚Šä»˜ã‘ã‚‹
 void VskImage::attach(VskImageHandle image)
 {
     destroy();
@@ -307,7 +309,7 @@ void VskImage::attach(VskImageHandle image)
         m_pimpl->m_image = image;
 }
 
-// ƒCƒ[ƒWƒnƒ“ƒhƒ‹‚ğæ‚è‚Í‚¸‚·
+// ã‚¤ãƒ¡ãƒ¼ã‚¸ãƒãƒ³ãƒ‰ãƒ«ã‚’å–ã‚Šã¯ãšã™
 VskImageHandle VskImage::detach()
 {
     VskImageHandle old_image = m_pimpl->m_image;
@@ -315,7 +317,7 @@ VskImageHandle VskImage::detach()
     return old_image;
 }
 
-// ƒCƒ[ƒWƒnƒ“ƒhƒ‹‚ğ”jŠü
+// ã‚¤ãƒ¡ãƒ¼ã‚¸ãƒãƒ³ãƒ‰ãƒ«ã‚’ç ´æ£„
 void VskImage::destroy()
 {
     if (m_pimpl->m_image)
@@ -325,7 +327,7 @@ void VskImage::destroy()
     }
 }
 
-// ƒCƒ[ƒW‚Ìƒf[ƒ^‚ğæ“¾‚·‚é
+// ã‚¤ãƒ¡ãƒ¼ã‚¸ã®ãƒ‡ãƒ¼ã‚¿ã‚’å–å¾—ã™ã‚‹
 VskByte *VskImage::bits(size_t offset)
 {
     assert(m_pimpl->m_image);
@@ -333,7 +335,7 @@ VskByte *VskImage::bits(size_t offset)
     return reinterpret_cast<VskByte *>(m_pimpl->m_bm.bmBits) + offset;
 }
 
-// ƒCƒ[ƒW‚Ìƒf[ƒ^‚ğæ“¾‚·‚é
+// ã‚¤ãƒ¡ãƒ¼ã‚¸ã®ãƒ‡ãƒ¼ã‚¿ã‚’å–å¾—ã™ã‚‹
 const VskByte *VskImage::bits(size_t offset) const
 {
     assert(m_pimpl->m_image);
@@ -341,7 +343,7 @@ const VskByte *VskImage::bits(size_t offset) const
     return reinterpret_cast<VskByte *>(m_pimpl->m_bm.bmBits) + offset;
 }
 
-// À•W(x, y)‚ÍƒCƒ[ƒW‚Ì“à‘¤‚©H
+// åº§æ¨™(x, y)ã¯ã‚¤ãƒ¡ãƒ¼ã‚¸ã®å†…å´ã‹ï¼Ÿ
 bool VskImage::inside(int x, int y) const
 {
     return x >= 0 && y >= 0 && x < width() && y < height();
@@ -350,17 +352,17 @@ bool VskImage::inside(int x, int y) const
 ////////////////////////////////////////////////////////////////////////////////////
 // Vsk1BppImage
 
-// ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+// ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 Vsk1BppImage::Vsk1BppImage()
 {
 }
 
-// ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+// ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 Vsk1BppImage::Vsk1BppImage(VskImageHandle image) : VskImage(image)
 {
 }
 
-// ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+// ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 Vsk1BppImage::Vsk1BppImage(int width, int height, const void *bits)
 {
     attach(vsk_create_1bpp_image_from_xbm(width, height, bits));
@@ -368,7 +370,7 @@ Vsk1BppImage::Vsk1BppImage(int width, int height, const void *bits)
 
 ////////////////////////////////////////////////////////////////////////////////////
 
-// ANK•¶š‚ÌƒsƒNƒZƒ‹‚ğæ“¾‚·‚éƒNƒ‰ƒX
+// ANKæ–‡å­—ã®ãƒ”ã‚¯ã‚»ãƒ«ã‚’å–å¾—ã™ã‚‹ã‚¯ãƒ©ã‚¹
 template <int t_width = 128, int t_height = 256>
 struct VskAnkGetter {
     const VskByte *m_bits = nullptr;
@@ -392,7 +394,7 @@ struct VskAnkGetter {
     }
 };
 
-// 8801‚Á‚Û‚¢ANK‚ÌƒsƒNƒZƒ‹‚ğæ“¾‚·‚éƒNƒ‰ƒX
+// 8801ã£ã½ã„ANKã®ãƒ”ã‚¯ã‚»ãƒ«ã‚’å–å¾—ã™ã‚‹ã‚¯ãƒ©ã‚¹
 struct Vsk8801AnkGetter : VskAnkGetter<> {
     Vsk8801AnkGetter() {
 #include "img/pc88_chars.xbm"
@@ -400,7 +402,7 @@ struct Vsk8801AnkGetter : VskAnkGetter<> {
     }
 };
 
-// 9801‚Á‚Û‚¢ANK‚ÌƒsƒNƒZƒ‹‚ğæ“¾‚·‚éƒNƒ‰ƒX
+// 9801ã£ã½ã„ANKã®ãƒ”ã‚¯ã‚»ãƒ«ã‚’å–å¾—ã™ã‚‹ã‚¯ãƒ©ã‚¹
 struct Vsk9801AnkGetter : VskAnkGetter<> {
     Vsk9801AnkGetter() {
 #include "img/pc98_chars.xbm"
@@ -408,7 +410,7 @@ struct Vsk9801AnkGetter : VskAnkGetter<> {
     }
 };
 
-// ‘SŠp•¶š‚ÌƒsƒNƒZƒ‹‚ğæ“¾‚·‚éƒNƒ‰ƒX
+// å…¨è§’æ–‡å­—ã®ãƒ”ã‚¯ã‚»ãƒ«ã‚’å–å¾—ã™ã‚‹ã‚¯ãƒ©ã‚¹
 struct VskKanjiGetter {
     const VskByte *m_bits = nullptr;
     VskKanjiGetter() {
@@ -429,13 +431,13 @@ struct VskKanjiGetter {
     }
 };
 
-// ƒsƒNƒZƒ‹‚ğ’u‚©‚È‚¢ƒNƒ‰ƒX
+// ãƒ”ã‚¯ã‚»ãƒ«ã‚’ç½®ã‹ãªã„ã‚¯ãƒ©ã‚¹
 struct VskNullPutter
 {
     void operator()(int x, int y) { }
 };
 
-// ANK•¶š‚ğ•`‰æ‚·‚é
+// ANKæ–‡å­—ã‚’æç”»ã™ã‚‹
 template <typename T_PUTTER, typename T_ERASER, typename T_GETTER>
 inline void vk_draw_ank(T_PUTTER& putter, T_ERASER& eraser, int x0, int y0, VskByte ch, const T_GETTER& getter, bool underline, bool upperline = false)
 {
@@ -451,7 +453,7 @@ inline void vk_draw_ank(T_PUTTER& putter, T_ERASER& eraser, int x0, int y0, VskB
     }
 }
 
-// JIS‚Ì‘SŠp•¶š‚ğ•`‰æ‚·‚é(‹¤’Êˆ—)
+// JISã®å…¨è§’æ–‡å­—ã‚’æç”»ã™ã‚‹(å…±é€šå‡¦ç†)
 template <typename T_GETTER, typename T_PUTTER, typename T_ERASER>
 inline void vk_draw_jis_generic(T_GETTER& getter, T_PUTTER& putter, T_ERASER& eraser, int x0, int y0, int x1, int y1, int xSrc, int ySrc, VskWord jis, bool underline, bool upperline = false)
 {
@@ -475,7 +477,7 @@ inline void vk_draw_jis_generic(T_GETTER& getter, T_PUTTER& putter, T_ERASER& er
     }
 }
 
-// JIS‚Ì‘SŠp•¶š‚ğ•`‰æ‚·‚é
+// JISã®å…¨è§’æ–‡å­—ã‚’æç”»ã™ã‚‹
 template <typename T_PUTTER, typename T_ERASER>
 inline void vk_draw_jis(T_PUTTER& putter, T_ERASER& eraser, int x0, int y0, int x1, int y1, VskWord jis, bool underline, bool upperline = false)
 {
@@ -486,16 +488,38 @@ inline void vk_draw_jis(T_PUTTER& putter, T_ERASER& eraser, int x0, int y0, int 
 
 ////////////////////////////////////////////////////////////////////////////////////
 
-VskImageHandle text_to_bitmap(int& total_pages, std::string& text, int max_x = 120, int max_y = 80, int margin = 16, int page = 1, bool is_8801 = false, bool bold = false)
+bool vsk_text_to_bitmap(VskTextToPng& text2png)
 {
-    const int char_width = (bold ? 9 : 8);
-    const int char_height = 20;
+    std::string& text = text2png.m_text;
+    if (text.empty())
+        return false;
+
+    int max_x = text2png.m_max_x, max_y = text2png.m_max_y;
+    int margin = text2png.m_margin;
+    int page = text2png.m_page;
+    bool is_8801 = text2png.m_is_8801, bold = text2png.m_bold;
+
+    VskImageHandle& hbm = text2png.m_hbm;
+    DeleteObject(hbm);
+    hbm = nullptr;
+
+    const int char_width = (bold ? 9 : 8), char_height = 20;
     int cx = char_width*max_x + 2*margin, cy = char_height*max_y + 2*margin;
-    HDC hDC = CreateCompatibleDC(NULL);
-    HBITMAP hbm = vsk_create_32bpp_image(cx, cy, nullptr);
-    HGDIOBJ hbmOld = SelectObject(hDC, hbm);
-    RECT rc = { 0, 0, cx, cy };
-    FillRect(hDC, &rc, GetStockBrush(WHITE_BRUSH));
+
+    HDC hDC;
+    HGDIOBJ hbmOld;
+    if (page > 0)
+    {
+        hbm = (HBITMAP)vsk_create_32bpp_image(cx, cy, nullptr);
+        if (!hbm)
+            return false;
+
+        hDC = CreateCompatibleDC(NULL);
+        hbmOld = SelectObject(hDC, hbm);
+        RECT rc = { 0, 0, cx, cy };
+        FillRect(hDC, &rc, GetStockBrush(WHITE_BRUSH));
+    }
+
     VskNullPutter null_putter;
     auto black_putter = [&](int x, int y) {
         if (bold) {
@@ -505,6 +529,7 @@ VskImageHandle text_to_bitmap(int& total_pages, std::string& text, int max_x = 1
             SetPixel(hDC, x, y, RGB(0, 0, 0));
         }
     };
+
     Vsk8801AnkGetter getter88;
     Vsk9801AnkGetter getter98;
     auto getter = [&](int x, int y) {
@@ -527,8 +552,7 @@ VskImageHandle text_to_bitmap(int& total_pages, std::string& text, int max_x = 1
         if (was_lead)
         {
             was_lead = false;
-            int x0 = margin + char_width*(x - 1);
-            int y0 = margin + char_height*y;
+            int x0 = margin + char_width*(x - 1), y0 = margin + char_height*y;
             if (vsk_is_sjis_trail(ch))
             {
                 VskWord jis = vsk_sjis2jis(lead, ch);
@@ -552,10 +576,13 @@ VskImageHandle text_to_bitmap(int& total_pages, std::string& text, int max_x = 1
             if (y >= max_y)
             {
                 x = y = 0;
+                if (current_page == page && page > 0)
+                    break;
                 ++current_page;
             }
             continue;
         }
+
         if (vsk_is_sjis_lead(ch))
         {
             lead = ch;
@@ -563,79 +590,88 @@ VskImageHandle text_to_bitmap(int& total_pages, std::string& text, int max_x = 1
             ++x;
             continue;
         }
-        int x0 = margin + char_width*x;
-        int y0 = margin + char_height*y;
+
         if (page == current_page)
+        {
+            int x0 = margin + char_width*x, y0 = margin + char_height*y;
             vk_draw_ank(black_putter, null_putter, x0, y0, ch, getter, false, false);
+        }
         ++x;
     }
 
-    total_pages = current_page;
+    if (page <= 0)
+    {
+        text2png.m_total_pages = current_page;
+        return true;
+    }
+
     SelectObject(hDC, hbmOld);
     DeleteDC(hDC);
-    return hbm;
+    return true;
 }
+
+#ifdef TXT2PNG_EXE
 
 #include <gdiplus.h>
 #pragma comment(lib, "gdiplus.lib")
 
-// GDI+—pBƒGƒ“ƒR[ƒ_[‚ÌCLSID‚ğæ“¾‚·‚é
+// GDI+ç”¨ã€‚ã‚¨ãƒ³ã‚³ãƒ¼ãƒ€ãƒ¼ã®CLSIDã‚’å–å¾—ã™ã‚‹
 BOOL GetEncoderClsid(CLSID* pClsid, LPCWSTR mime_type)
 {
-    // ƒGƒ“ƒR[ƒ_[‚ÌƒTƒCƒYî•ñ‚ğæ“¾
+    // ã‚¨ãƒ³ã‚³ãƒ¼ãƒ€ãƒ¼ã®ã‚µã‚¤ã‚ºæƒ…å ±ã‚’å–å¾—
     UINT cItems = 0, cbEncoders = 0;
     Gdiplus::GetImageEncodersSize(&cItems, &cbEncoders);
     if (!cbEncoders)
-        return FALSE; // ¸”s
+        return FALSE; // å¤±æ•—
 
-    // ƒGƒ“ƒR[ƒ_[‚ğŠi”[‚·‚éƒƒ‚ƒŠ[‚ğŠm•Û
+    // ã‚¨ãƒ³ã‚³ãƒ¼ãƒ€ãƒ¼ã‚’æ ¼ç´ã™ã‚‹ãƒ¡ãƒ¢ãƒªãƒ¼ã‚’ç¢ºä¿
     auto pEncoders = (Gdiplus::ImageCodecInfo *)malloc(cbEncoders);
     if (!pEncoders)
-        return FALSE; // ¸”s
+        return FALSE; // å¤±æ•—
 
-    // ƒGƒ“ƒR[ƒ_[‚ğŠi”[
+    // ã‚¨ãƒ³ã‚³ãƒ¼ãƒ€ãƒ¼ã‚’æ ¼ç´
     Gdiplus::GetImageEncoders(cItems, cbEncoders, pEncoders);
 
-    // MIME‚Ìí—Ş‚Éˆê’v‚·‚éƒGƒ“ƒR[ƒ_[‚ÌCLSID‚ğæ“¾
+    // MIMEã®ç¨®é¡ã«ä¸€è‡´ã™ã‚‹ã‚¨ãƒ³ã‚³ãƒ¼ãƒ€ãƒ¼ã®CLSIDã‚’å–å¾—
     for (UINT iItem = 0; iItem < cItems; ++iItem)
     {
         if (wcscmp(pEncoders[iItem].MimeType, mime_type) == 0)
         {
             *pClsid = pEncoders[iItem].Clsid;
-            free(pEncoders); // ‰ğ•ú
-            return TRUE; // ¬Œ÷
+            free(pEncoders); // è§£æ”¾
+            return TRUE; // æˆåŠŸ
         }
     }
 
-    free(pEncoders); // ‰ğ•ú
-    return FALSE; // ¸”s
+    free(pEncoders); // è§£æ”¾
+    return FALSE; // å¤±æ•—
 }
 
-// HBITMAP‚ğ‰æ‘œƒtƒ@ƒCƒ‹‚Æ‚µ‚Ä•Û‘¶‚·‚éŠÖ”
+// HBITMAPã‚’ç”»åƒãƒ•ã‚¡ã‚¤ãƒ«ã¨ã—ã¦ä¿å­˜ã™ã‚‹é–¢æ•°
 BOOL SaveHBITMAPToFile(HBITMAP hBitmap, LPCWSTR filename, LPCWSTR mime_type = L"image/png")
 {
-    // GDI+ BitmapƒIƒuƒWƒFƒNƒg‚ğHBITMAP‚©‚çì¬
+    // GDI+ Bitmapã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’HBITMAPã‹ã‚‰ä½œæˆ
     auto bitmap = new Gdiplus::Bitmap(hBitmap, NULL);
     if (!bitmap)
-        return FALSE; // ¸”s
+        return FALSE; // å¤±æ•—
     std::shared_ptr<Gdiplus::Bitmap> pBitmap(bitmap);
 
-    // PNGƒGƒ“ƒR[ƒ_‚ÌCLSID‚ğæ“¾
+    // PNGã‚¨ãƒ³ã‚³ãƒ¼ãƒ€ã®CLSIDã‚’å–å¾—
     CLSID clsid;
     if (!GetEncoderClsid(&clsid, mime_type))
-        return FALSE; // ¸”s
+        return FALSE; // å¤±æ•—
 
-    // PNG‚Æ‚µ‚Ä•Û‘¶
+    // PNGã¨ã—ã¦ä¿å­˜
     if (pBitmap->Save(filename, &clsid, NULL) != Gdiplus::Ok)
-        return FALSE; // ¸”s
+        return FALSE; // å¤±æ•—
 
-    return TRUE; // ¬Œ÷
+    return TRUE; // æˆåŠŸ
 }
 
-// ƒXƒNƒŠ[ƒ“ƒVƒ‡ƒbƒg‚ğ•Û‘¶‚·‚é
+// ã‚¹ã‚¯ãƒªãƒ¼ãƒ³ã‚·ãƒ§ãƒƒãƒˆã‚’ä¿å­˜ã™ã‚‹
 bool vsk_save_screenshot(HBITMAP hbm, const char *out_filename)
 {
-    // GDI+‚ğ‰Šú‰»
+    // GDI+ã‚’åˆæœŸåŒ–
     Gdiplus::GdiplusStartupInput gdiplusStartupInput;
     ULONG_PTR gdiplusToken;
     Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
@@ -644,13 +680,13 @@ bool vsk_save_screenshot(HBITMAP hbm, const char *out_filename)
     ::MultiByteToWideChar(932, 0, out_filename, -1, szFileW, MAX_PATH);
     szFileW[MAX_PATH - 1] = 0;
 
-    // ‰æ‘œƒtƒ@ƒCƒ‹‚Æ‚µ‚Ä•Û‘¶
+    // ç”»åƒãƒ•ã‚¡ã‚¤ãƒ«ã¨ã—ã¦ä¿å­˜
     SaveHBITMAPToFile(hbm, szFileW, L"image/png");
 
-    // GDI+‚ğ‰ğ•ú
+    // GDI+ã‚’è§£æ”¾
     Gdiplus::GdiplusShutdown(gdiplusToken);
 
-    // HBITMAP‚ğ”jŠü
+    // HBITMAPã‚’ç ´æ£„
     ::DeleteObject(hbm);
 
     return true;
@@ -742,20 +778,32 @@ int main(int argc, char **argv)
     }
     fclose(fin);
 
-    int total_pages;
-    HBITMAP hbm = text_to_bitmap(total_pages, text, max_x, max_y, margin, 0, is_8801, bold);
-    DeleteObject(hbm);
-    int num_pages = total_pages;
+    VskTextToPng text2png;
+    text2png.m_text = text;
+    text2png.m_max_x = max_x;
+    text2png.m_max_y = max_y;
+    text2png.m_margin = margin;
+    text2png.m_page = 0;
+    text2png.m_is_8801 = is_8801;
+    text2png.m_bold = bold;
+    vsk_text_to_bitmap(text2png);
+
+    int num_pages = text2png.m_total_pages;
     for (int ipage = 1; ipage <= num_pages; ++ipage)
     {
-        hbm = text_to_bitmap(total_pages, text, max_x, max_y, margin, ipage, is_8801, bold);
         char out_filename[MAX_PATH];
         std::sprintf(out_filename, "output-%u.png", ipage);
-        vsk_save_screenshot(hbm, out_filename);
-        DeleteObject(hbm);
+
+        text2png.m_page = ipage;
+        vsk_text_to_bitmap(text2png);
+        vsk_save_screenshot(text2png.m_hbm, out_filename);
+        DeleteObject(text2png.m_hbm);
+
         printf("Generated %s.\n", out_filename);
     }
 
-    printf("total %d pages\n", total_pages);
+    printf("Total %d pages\n", num_pages);
     return 0;
 }
+
+#endif  // def TXT2PNG_EXE
